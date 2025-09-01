@@ -8,6 +8,30 @@ df = pd.read_csv('startup_cleaned.csv')
 
 df['date'] = pd.to_datetime(df['date'], errors='coerce')
 
+def load_overall_analysis():
+    st.title('Overall Analysis')
+
+    # total invested amount
+    total = round(df['amount'].sum())
+    # max amount infused in a startup
+    max_funding = df.groupby('startup')['amount'].sum().sort_values(ascending=False).head(1).values[0]
+    # avg ticket size
+    avg_funding = round(df.groupby('startup')['amount'].sum().mean(), 2)
+    # Total funded Startups
+    total_startups = df['startup'].nunique()
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric('Total Amount Invested', str(total) + ' Cr')
+    with col2:
+        st.metric('Max Amount Infused in a Startup', str(max_funding) + ' Cr')
+    with col3:
+        st.metric('Average Ticket Size', str(avg_funding) + ' Cr')
+    with col4:
+        st.metric('Total Funded Startups', str(total_startups))
+
+
 def load_investor_details(investor):
     st.title(investor)
     # load the recent 5 investments of the investor
@@ -28,7 +52,7 @@ def load_investor_details(investor):
     with col2:
         #
         vertical_series = df[df['investors'].str.contains(investor)].groupby('vertical')['amount'].sum()
-        st.subheader('Sectors Investmented In')
+        st.subheader('Sectors Investment ')
         fig1, ax1 = plt.subplots()
         ax1.bar(vertical_series.index , vertical_series.values)
         plt.xticks(rotation=90)
@@ -63,11 +87,16 @@ st.sidebar.title('Startup Funding Analysis')
 option = st.sidebar.selectbox('Select One',['Overall Analysis','StartUp','Investor'])
 
 if option == 'Overall Analysis':
-    st.title('Overall Analysis')
+    btn0 = st.sidebar.button('Show Overall Analysis')
+    if btn0:
+        load_overall_analysis()
+
+
 elif option == 'StartUp':
     st.sidebar.selectbox('Select StartUp',sorted(df['startup'].unique().tolist()))
     btn1 = st.sidebar.button('Find StartUp Details')
     st.title('StartUp Analysis')
+
 else:
     selected_investor = st.sidebar.selectbox('Select StartUp',sorted(set(df['investors'].str.split(',').sum())))
     btn2 = st.sidebar.button('Find Investor Details')
